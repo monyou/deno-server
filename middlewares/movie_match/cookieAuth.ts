@@ -6,7 +6,7 @@ export const authCookie = "sm_movie_match_auth";
 
 const cookieAuthMiddleware = async (ctx: Context, next: Next) => {
     const cookie = ctx.cookies.get(authCookie);
-    const isSecure = ctx.request.url.startsWith("https://");
+    const isSecure = ctx.request.url.protocol === "https:";
     if (!cookie) {
         ctx.cookies.set(authCookie, "", { maxAge: 0, httpOnly: true, secure: isSecure, sameSite: "none", path: "/" });
         ctx.response.status = 401;
