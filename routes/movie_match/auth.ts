@@ -40,11 +40,10 @@ router.post(
                 return;
             }
 
-            const isSecure = ctx.request.url.protocol === "https:";
             ctx.cookies.set(authCookie, user._id.toString(), {
                 maxAge: 60 * 60 * 24 * 30,
                 httpOnly: true,
-                secure: isSecure,
+                secure: ctx.state.isSecure,
                 sameSite: "none",
                 path: "/"
             });

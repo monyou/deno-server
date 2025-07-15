@@ -6,6 +6,8 @@ const corsMiddleware = async (ctx: Context, next: Next) => {
         "https://sm-movie-match.vercel.app",
     ];
     const origin = ctx.request.headers.get("Origin");
+    const proto = ctx.request.headers.get("x-forwarded-proto");
+    ctx.state.isSecure = ctx.request.secure || proto === "https";
 
     if (origin && allowedOrigins.includes(origin)) {
         ctx.response.headers.set("Access-Control-Allow-Origin", origin);
