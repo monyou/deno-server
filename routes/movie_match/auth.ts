@@ -1,4 +1,4 @@
-import { Context, Next, Router, hash, verify } from "../../deps.ts";
+import { Context, Next, Router, hash, compare } from "../../deps.ts";
 import { authCookie } from "../../middlewares/movie_match/cookieAuth.ts";
 import { closeMongoDbConnection, openMongoDbConnection } from "../../utils/movie_match/mongoDbClient.ts";
 
@@ -33,7 +33,7 @@ router.post(
                 ctx.response.body = { message: "User not activated" };
                 return;
             }
-            const isPasswordValid = await verify(body.password, user.password);
+            const isPasswordValid = await compare(body.password, user.password);
             if (!isPasswordValid) {
                 ctx.response.status = 404;
                 ctx.response.body = { message: "Invalid password" };
