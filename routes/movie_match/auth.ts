@@ -48,14 +48,13 @@ router.post(
                 path: "/"
             });
             ctx.response.status = 200;
-            ctx.response.body = { message: "OK", user: { id: user._id, email: user.email, firstName: user.firstName } };
+            ctx.response.body = { message: "OK", data: { id: user._id, email: user.email, firstName: user.firstName } };
             await next();
         } catch (error) {
             console.log("Server Error: ", error);
             ctx.response.status = 500;
             ctx.response.body = {
-                message: "Internal Server Error",
-                error: error,
+                message: "Internal Server Error"
             };
             await next();
         }
@@ -109,8 +108,7 @@ router.post(
             console.log("Server Error: ", error);
             ctx.response.status = 500;
             ctx.response.body = {
-                message: "Internal Server Error",
-                error: error,
+                message: "Internal Server Error"
             };
             await next();
         }
