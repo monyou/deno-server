@@ -1,13 +1,12 @@
 import { Context, Next, pug, Router } from "../deps.ts";
 import vsg_marketplaceBobRouter from "./vsg_marketplace/bob.ts";
 import movie_match_authRouter from "./movie_match/auth.ts";
-import credentialsMiddleware from "../middlewares/movie_match/credentials.ts";
 
 const indexRouter = new Router();
 const viewsRouter = new Router();
 viewsRouter.get("/", async (ctx: Context, next: Next) => {
     const template = await Deno.readTextFile("./views/index.pug");
-    ctx.response.body = pug.compile(template)({ name: "Kolio" });
+    ctx.response.body = pug.compile(template)();
     await next();
 });
 
@@ -18,8 +17,7 @@ indexRouter.use(
 );
 // movie_match
 indexRouter.use(
-    movie_match_authRouter.routes(),
-    credentialsMiddleware
+    movie_match_authRouter.routes()
 );
 
 export default indexRouter;
