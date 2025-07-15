@@ -116,4 +116,23 @@ router.post(
     }
 );
 
+router.get(
+    "/movie_match/auth/logout",
+    async (ctx: Context, next: Next) => {
+        try {
+            ctx.cookies.delete(authCookie, { path: "/" });
+            ctx.response.status = 200;
+            ctx.response.body = { message: "OK" };
+            await next();
+        } catch (error) {
+            console.log("Server Error: ", error);
+            ctx.response.status = 500;
+            ctx.response.body = {
+                message: "Internal Server Error"
+            };
+            await next();
+        }
+    }
+);
+
 export default router;
