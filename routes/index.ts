@@ -10,16 +10,14 @@ viewsRouter.get("/", async (ctx: Context, next: Next) => {
     await next();
 });
 
-indexRouter.use(viewsRouter.routes(), viewsRouter.allowedMethods());
+indexRouter.use(viewsRouter.routes());
 // vsg_marketplace
 indexRouter.use(
-    vsg_marketplaceBobRouter.routes(),
-    vsg_marketplaceBobRouter.allowedMethods()
+    vsg_marketplaceBobRouter.routes()
 );
 // movie_match
 indexRouter.use(
-    movie_match_authRouter.routes(),
-    movie_match_authRouter.allowedMethods()
+    movie_match_authRouter.routes()
 );
 
 export default indexRouter;
