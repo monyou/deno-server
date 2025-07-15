@@ -9,7 +9,7 @@ const cookieAuthMiddleware = async (ctx: Context, next: Next) => {
     if (!cookie) {
         ctx.cookies.set(authCookie, "", { maxAge: 0, httpOnly: true, secure: true, sameSite: "strict", path: "/" });
         ctx.response.status = 401;
-        ctx.response.body = { message: "Unauthorized" };
+        ctx.response.body = { message: "Session expired" };
         return;
     }
     const db = await openMongoDbConnection();
@@ -18,8 +18,8 @@ const cookieAuthMiddleware = async (ctx: Context, next: Next) => {
     await closeMongoDbConnection();
     if (!user) {
         ctx.cookies.set(authCookie, "", { maxAge: 0, httpOnly: true, secure: true, sameSite: "strict", path: "/" });
-        ctx.response.status = 401;
-        ctx.response.body = { message: "Unauthorized" };
+        ctx.response.status = 403;
+        ctx.response.body = { message: "Forbidden" };
         return;
     }
     await next();
