@@ -18,8 +18,8 @@ const corsMiddleware = async (ctx: Context, next: Next) => {
 
     if (ctx.req.method === "OPTIONS") {
         ctx.status(204);
-        return;
     }
+
     await next();
 };
 
