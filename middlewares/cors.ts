@@ -17,7 +17,8 @@ const corsMiddleware = async (ctx: Context, next: Next) => {
     ctx.header("Access-Control-Allow-Headers", "Content-Type");
 
     if (ctx.req.method === "OPTIONS") {
-        return ctx.status(204);
+        ctx.status(204);
+        return ctx.text("Ok");
     }
 
     await next();
