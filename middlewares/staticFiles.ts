@@ -1,6 +1,6 @@
 import { Context, Next, send } from "../deps.ts";
 
-const staticFiles = async (ctx: Context, next: Next) => {
+const staticFilesMiddleware = async (ctx: Context, next: Next) => {
     if (ctx.request.url.pathname.startsWith("/static")) {
         await send(ctx, ctx.request.url.pathname, {
             root: Deno.cwd(),
@@ -10,4 +10,4 @@ const staticFiles = async (ctx: Context, next: Next) => {
     }
 };
 
-export default staticFiles;
+export default staticFilesMiddleware;

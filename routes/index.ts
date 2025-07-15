@@ -1,5 +1,6 @@
 import { Context, Next, pug, Router } from "../deps.ts";
 import vsg_marketplaceBobRouter from "./vsg_marketplace/bob.ts";
+import movie_match_authRouter from "./movie_match/auth.ts";
 
 const indexRouter = new Router();
 const viewsRouter = new Router();
@@ -14,6 +15,11 @@ indexRouter.use(viewsRouter.routes(), viewsRouter.allowedMethods());
 indexRouter.use(
     vsg_marketplaceBobRouter.routes(),
     vsg_marketplaceBobRouter.allowedMethods()
+);
+// movie_match
+indexRouter.use(
+    movie_match_authRouter.routes(),
+    movie_match_authRouter.allowedMethods()
 );
 
 export default indexRouter;
