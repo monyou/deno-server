@@ -5,19 +5,19 @@ const corsMiddleware = async (ctx: Context, next: Next) => {
         "http://localhost:5173",
         "https://sm-movie-match.vercel.app",
     ];
-    const origin = ctx.request.headers.get("Origin");
-    const proto = ctx.request.headers.get("x-forwarded-proto");
-    ctx.state.isSecure = ctx.request.secure || proto === "https" || origin?.startsWith("https");
+    const origin = ctx.req.header("Origin");
+    const proto = ctx.req.header("x-forwarded-proto");
+    ctx.set('isSecure', ctx.req.secure || proto === "https" || origin?.startsWith("https"));
 
     if (origin && allowedOrigins.includes(origin)) {
-        ctx.response.headers.set("Access-Control-Allow-Origin", origin);
+        ctx.header("Access-Control-Allow-Origin", origin);
     }
-    ctx.response.headers.set("Access-Control-Allow-Credentials", "true");
-    ctx.response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    ctx.response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+    ctx.header("Access-Control-Allow-Credentials", "true");
+    ctx.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    ctx.header("Access-Control-Allow-Headers", "Content-Type");
 
-    if (ctx.request.method === "OPTIONS") {
-        ctx.response.status = 204;
+    if (ctx.req.method === "OPTIONS") {
+        ctx.status(204);
         return;
     }
     await next();

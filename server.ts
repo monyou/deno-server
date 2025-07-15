@@ -1,15 +1,13 @@
-import { Application } from "./deps.ts";
+import { Hono, serveStatic } from "./deps.ts";
 import loggerMiddleware from "./middlewares/logger.ts";
 import corsMiddleware from "./middlewares/cors.ts";
-import staticFilesMiddleware from "./middlewares/staticFiles.ts";
 import indexRouter from "./routes/index.ts";
 
-const app = new Application();
+const app = new Hono();
 
-app.use(corsMiddleware);
-app.use(loggerMiddleware);
-app.use(staticFilesMiddleware);
-app.use(indexRouter.routes());
+app.use("*", corsMiddleware);
+app.use("*", loggerMiddleware);
+app.use("/static/*", serveStatic({ root: "./", rewriteRequestPath: (path: any) => path }));
+app.route("/", indexRouter);
 
-console.log("Server running on http://localhost:8000");
-await app.listen({ port: 8000 });
+Deno.serve(app.fetch);

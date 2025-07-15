@@ -1,10 +1,10 @@
-import { Context, Next, Router } from "../../deps.ts";
+import { Context, Hono } from "../../deps.ts";
 
-const router = new Router();
+const router = new Hono();
 
 router.get(
-    "/vsg_marketplace/bob/employees",
-    async (ctx: Context, next: Next) => {
+    "/employees",
+    async (ctx: Context) => {
         try {
             const response = await fetch("https://api.hibob.com/v1/people", {
                 method: "GET",
@@ -21,17 +21,14 @@ router.get(
                 email: employee.email,
             }));
 
-            ctx.response.status = 200;
-            ctx.response.body = { message: "OK", employees };
-            await next();
+            ctx.status(200);
+            return ctx.json({ message: "OK", data: employees });
         } catch (error) {
             console.log("Server Error: ", error);
-            ctx.response.status = 500;
-            ctx.response.body = {
-                message: "Internal Server Error",
-                error: error,
-            };
-            await next();
+            ctx.status(500);
+            return ctx.json({
+                message: "Internal Server Error"
+            });
         }
     }
 );

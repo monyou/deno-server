@@ -1,26 +1,29 @@
-import { Context, Next } from "../../deps.ts";
+import { Context, deleteCookie, getCookie, Next } from "../../deps.ts";
 import { closeMongoDbConnection, openMongoDbConnection } from "../../utils/movie_match/mongoDbClient.ts";
-
 
 export const authCookie = "sm_movie_match_auth";
 
 const cookieAuthMiddleware = async (ctx: Context, next: Next) => {
-    const cookie = ctx.cookies.get(authCookie);
+    const cookie = getCookie(ctx, authCookie);
     if (!cookie) {
-        await ctx.cookies.delete(authCookie, { path: "/" });
-        ctx.response.status = 401;
-        ctx.response.body = { message: "Session expired" };
-        return;
+        deleteCookie(ctx, authCookie, {
+            path: '/',
+            secure: ctx.get("isSecure"),
+        });
+        ctx.status(401);
+        return ctx.json({ message: "Session expired" });
     }
     const db = await openMongoDbConnection();
     const usersCollection = db.collection("User");
     const user = await usersCollection.findOne({ _id: cookie, active: true });
     await closeMongoDbConnection();
     if (!user) {
-        await ctx.cookies.delete(authCookie, { path: "/" });
-        ctx.response.status = 403;
-        ctx.response.body = { message: "Forbidden" };
-        return;
+        deleteCookie(ctx, authCookie, {
+            path: '/',
+            secure: ctx.get("isSecure"),
+        });
+        ctx.status(403);
+        return ctx.json({ message: "Forbidden" });
     }
     await next();
 };

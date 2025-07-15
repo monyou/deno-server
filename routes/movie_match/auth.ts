@@ -1,90 +1,80 @@
-import { Context, Next, Router, hash, verify } from "../../deps.ts";
+import { Context, Hono, hash, verify, deleteCookie, setCookie } from "../../deps.ts";
 import { authCookie } from "../../middlewares/movie_match/cookieAuth.ts";
 import { closeMongoDbConnection, openMongoDbConnection } from "../../utils/movie_match/mongoDbClient.ts";
 
-const router = new Router();
+const router = new Hono();
 
 router.post(
-    "/movie_match/auth/login",
-    async (ctx: Context, next: Next) => {
+    "/login",
+    async (ctx: Context) => {
         try {
-            const body = await ctx.request.body.json();
+            const body = await ctx.req.json();
             if (!body.email || !body.password) {
-                ctx.response.status = 400;
-                ctx.response.body = { message: "Missing fields" };
-                return;
+                ctx.status(400);
+                return ctx.json({ message: "Missing fields" });
             }
             if (typeof body.email !== "string" || typeof body.password !== "string") {
-                ctx.response.status = 400;
-                ctx.response.body = { message: "Invalid field types" };
-                return;
+                ctx.status(400);
+                return ctx.json({ message: "Invalid field types" });
             }
             const db = await openMongoDbConnection();
             const usersCollection = db.collection("User");
             const user = await usersCollection.findOne({ email: body.email });
             await closeMongoDbConnection();
             if (!user) {
-                ctx.response.status = 404;
-                ctx.response.body = { message: "User not found" };
-                return;
+                ctx.status(404);
+                return ctx.json({ message: "User not found" });
             }
             if (user.active === false) {
-                ctx.response.status = 404;
-                ctx.response.body = { message: "User not activated" };
-                return;
+                ctx.status(404);
+                return ctx.json({ message: "User not activated" });
             }
             const isPasswordValid = await verify(body.password, user.password);
             if (!isPasswordValid) {
-                ctx.response.status = 404;
-                ctx.response.body = { message: "Invalid password" };
-                return;
+                ctx.status(404);
+                return ctx.json({ message: "Invalid password" });
             }
 
-            await ctx.cookies.set(authCookie, user._id.toString(), {
+            setCookie(ctx, authCookie, user._id.toString(), {
                 maxAge: 60 * 60 * 24 * 30,
                 httpOnly: true,
-                secure: ctx.state.isSecure,
-                sameSite: "none",
+                secure: ctx.get("isSecure"),
+                sameSite: ctx.get('isSecure') ? "none" : "lax",
                 path: "/"
             });
-            ctx.response.status = 200;
-            ctx.response.body = { message: "OK", data: { id: user._id, email: user.email, firstName: user.firstName } };
-            await next();
+            ctx.status(200);
+            return ctx.json({ message: "OK", data: { id: user._id, email: user.email, firstName: user.firstName } });
         } catch (error) {
             console.log("Server Error: ", error);
-            ctx.response.status = 500;
-            ctx.response.body = {
+            ctx.status(500);
+            return ctx.json({
                 message: "Internal Server Error"
-            };
-            await next();
+            });
         }
     }
 );
 
 router.post(
-    "/movie_match/auth/register",
-    async (ctx: Context, next: Next) => {
+    "/register",
+    async (ctx: Context) => {
         try {
-            const body = await ctx.request.body.json();
+            const body = await ctx.req.json();
             if (!body.firstName || !body.lastName || !body.email || !body.password) {
-                ctx.response.status = 400;
-                ctx.response.body = { message: "Missing fields" };
-                return;
+                ctx.status(400);
+                return ctx.json({ message: "Missing fields" });
             }
             if (typeof body.firstName !== "string" || typeof body.lastName !== "string" || typeof body.email !== "string" || typeof body.password !== "string") {
-                ctx.response.status = 400;
-                ctx.response.body = { message: "Invalid field types" };
-                return;
+                ctx.status(400);
+                return ctx.json({ message: "Invalid field types" });
             }
 
             const db = await openMongoDbConnection();
             const usersCollection = db.collection("User");
             const existingUser = await usersCollection.findOne({ email: body.email });
             if (existingUser) {
-                ctx.response.status = 400;
-                ctx.response.body = { message: "Email already exists" };
                 await closeMongoDbConnection();
-                return;
+                ctx.status(400);
+                return ctx.json({ message: "Email already exists" });
             }
 
             const hashedPassword = await hash(body.password);
@@ -99,37 +89,35 @@ router.post(
             await usersCollection.insertOne(newUser);
             await closeMongoDbConnection();
 
-
-            ctx.response.status = 200;
-            ctx.response.body = { message: "OK" };
-            await next();
+            ctx.status(200);
+            return ctx.json({ message: "OK" });
         } catch (error) {
             await closeMongoDbConnection();
             console.log("Server Error: ", error);
-            ctx.response.status = 500;
-            ctx.response.body = {
+            ctx.status(500);
+            return ctx.json({
                 message: "Internal Server Error"
-            };
-            await next();
+            });
         }
     }
 );
 
 router.get(
-    "/movie_match/auth/logout",
-    async (ctx: Context, next: Next) => {
+    "/logout",
+    async (ctx: Context) => {
         try {
-            await ctx.cookies.delete(authCookie, { path: "/" });
-            ctx.response.status = 200;
-            ctx.response.body = { message: "OK" };
-            await next();
+            deleteCookie(ctx, authCookie, {
+                path: '/',
+                secure: ctx.get("isSecure"),
+            });
+            ctx.status(200);
+            return ctx.json({ message: "OK" });
         } catch (error) {
             console.log("Server Error: ", error);
-            ctx.response.status = 500;
-            ctx.response.body = {
+            ctx.status(500);
+            return ctx.json({
                 message: "Internal Server Error"
-            };
-            await next();
+            });
         }
     }
 );

@@ -1,23 +1,24 @@
-import { Context, Next, compile, Router } from "../deps.ts";
+import { Context, compile, Hono } from "../deps.ts";
 import vsg_marketplaceBobRouter from "./vsg_marketplace/bob.ts";
 import movie_match_authRouter from "./movie_match/auth.ts";
 
-const indexRouter = new Router();
-const viewsRouter = new Router();
-viewsRouter.get("/", async (ctx: Context, next: Next) => {
-    const template = await Deno.readTextFile("./views/index.pug");
-    ctx.response.body = compile(template)();
-    await next();
-});
+const indexRouter = new Hono();
 
-indexRouter.use(viewsRouter.routes());
+// Home page view route
+indexRouter.get("/", async (ctx: Context) => {
+    const template = await Deno.readTextFile("./views/index.pug");
+    const htmlData = compile(template)();
+    return ctx.html(htmlData);
+});
 // vsg_marketplace
-indexRouter.use(
-    vsg_marketplaceBobRouter.routes()
+indexRouter.route(
+    "/vsg_marketplace/bob",
+    vsg_marketplaceBobRouter
 );
 // movie_match
-indexRouter.use(
-    movie_match_authRouter.routes()
+indexRouter.route(
+    "/movie_match/auth",
+    movie_match_authRouter
 );
 
 export default indexRouter;
