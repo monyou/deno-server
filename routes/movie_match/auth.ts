@@ -1,6 +1,6 @@
-import { Context, Hono, hash, verify, deleteCookie, setCookie } from "../../deps.ts";
+import { Context, Hono, hash, verify, deleteCookie, setCookie, ObjectId, SMTPClient } from "../../deps.ts";
 import { authCookie } from "../../middlewares/movie_match/cookieAuth.ts";
-import { closeMongoDbConnection, openMongoDbConnection } from "../../utils/movie_match/mongoDbClient.ts";
+import { closeMongoDbConnection, mongoDbClient, openMongoDbConnection } from "../../utils/movie_match/mongoDbClient.ts";
 
 const router = new Hono();
 
@@ -57,6 +57,7 @@ router.post(
 router.post(
     "/register",
     async (ctx: Context) => {
+        let session;
         try {
             const body = await ctx.req.json();
             if (!body.firstName || !body.lastName || !body.email || !body.password) {
@@ -79,6 +80,7 @@ router.post(
 
             const hashedPassword = await hash(body.password);
             const newUser = {
+                _id: new ObjectId(),
                 firstName: body.firstName,
                 lastName: body.lastName,
                 email: body.email,
@@ -86,12 +88,41 @@ router.post(
                 active: false,
                 createdAt: Date.now(),
             };
-            await usersCollection.insertOne(newUser);
-            await closeMongoDbConnection();
+            session = mongoDbClient.startSession();
+            session.startTransaction();
+            await usersCollection.insertOne(newUser, { session });
 
+            const parsedUrl = new URL(ctx.req.url);
+            const activationUrl = `${parsedUrl.protocol}//${parsedUrl.host}/movie_match/auth/activate/${newUser._id}`;
+            const emailBody = `<p>Click <a href="${activationUrl}" target="_blank" rel="noopener noreferrer">HERE</a> to activate your account.</p>`;
+            const client = new SMTPClient({
+                connection: {
+                    hostname: "smtp.gmail.com",
+                    port: 465,
+                    tls: true,
+                    auth: {
+                        username: "69gamemail69@gmail.com",
+                        password: Deno.env.get("MOVIE_MATCH_GMAIL_APP_PASS"),
+                    },
+                },
+            });
+            await client.send({
+                from: "69gamemail69@gmail.com",
+                to: newUser.email,
+                subject: "[MovieMatch] - Activate your account",
+                html: emailBody,
+            });
+            await client.close();
+
+
+            await session.commitTransaction();
+            session.endSession();
+            await closeMongoDbConnection();
             ctx.status(200);
             return ctx.json({ message: "OK" });
         } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
             await closeMongoDbConnection();
             console.log("Server Error: ", error);
             ctx.status(500);
@@ -102,7 +133,40 @@ router.post(
     }
 );
 
-router.get(
+router.get('/activate/:id', async (ctx: Context) => {
+    try {
+        const userId = ctx.req.param('id');
+        if (!userId) {
+            ctx.status(400);
+            return ctx.json({ message: "Missing user ID" });
+        }
+
+        const db = await openMongoDbConnection();
+        const usersCollection = db.collection("User");
+        const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+
+        if (!user) {
+            await closeMongoDbConnection();
+            ctx.status(404);
+            return ctx.json({ message: "User not found" });
+        }
+
+        user.active = true;
+        await usersCollection.updateOne({ _id: new ObjectId(userId) }, { $set: { active: true } });
+
+        await closeMongoDbConnection();
+        return ctx.redirect(`${Deno.env.get("MOVIE_MATCH_APP_URL")}/login`, 302);
+    } catch (error) {
+        await closeMongoDbConnection();
+        console.log("Server Error: ", error);
+        ctx.status(500);
+        return ctx.json({
+            message: "Internal Server Error"
+        });
+    }
+});
+
+router.post(
     "/logout",
     async (ctx: Context) => {
         try {
