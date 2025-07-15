@@ -40,7 +40,7 @@ router.post(
                 return;
             }
 
-            ctx.cookies.set(authCookie, user._id.toString(), {
+            await ctx.cookies.set(authCookie, user._id.toString(), {
                 maxAge: 60 * 60 * 24 * 30,
                 httpOnly: true,
                 secure: ctx.state.isSecure,
@@ -119,7 +119,7 @@ router.get(
     "/movie_match/auth/logout",
     async (ctx: Context, next: Next) => {
         try {
-            ctx.cookies.delete(authCookie, { path: "/" });
+            await ctx.cookies.delete(authCookie, { path: "/" });
             ctx.response.status = 200;
             ctx.response.body = { message: "OK" };
             await next();
