@@ -7,7 +7,7 @@ const corsMiddleware = async (ctx: Context, next: Next) => {
     ];
     const origin = ctx.request.headers.get("Origin");
     const proto = ctx.request.headers.get("x-forwarded-proto");
-    ctx.state.isSecure = ctx.request.secure || proto === "https";
+    ctx.state.isSecure = ctx.request.secure || proto === "https" || origin?.startsWith("https");
 
     if (origin && allowedOrigins.includes(origin)) {
         ctx.response.headers.set("Access-Control-Allow-Origin", origin);
