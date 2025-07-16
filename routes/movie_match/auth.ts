@@ -94,7 +94,71 @@ router.post(
 
             const parsedUrl = new URL(ctx.req.url);
             const activationUrl = `${parsedUrl.protocol}//${parsedUrl.host}/movie_match/auth/activate/${newUser._id}`;
-            const emailBody = `<p>Click <a href="${activationUrl}" target="_blank" rel="noopener noreferrer">HERE</a> to activate your account.</p>`;
+            const emailBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Activate Your MovieMatch Account</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #1c1c1c; font-family: Arial, sans-serif;">
+  <table width="100%" bgcolor="#1c1c1c" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="margin: 40px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+          <!-- Header -->
+          <tr>
+            <td bgcolor="#111" style="padding: 30px; text-align: center; color: #ffffff;">
+              <h1 style="margin: 0; font-size: 28px;">🎬 MovieMatch</h1>
+              <p style="margin: 8px 0 0; font-size: 16px; color: #ccc;">Your movie companion</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding: 30px;">
+              <h2 style="color: #333333; font-size: 22px;">Activate Your Account</h2>
+              <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+                Hi there! 🎉<br><br>
+                Thanks for signing up for <strong>MovieMatch</strong> – your new favorite way to find movies and match with fellow movie lovers.
+                To get started, please activate your account by clicking the button below:
+              </p>
+
+              <!-- Button -->
+              <table cellpadding="0" cellspacing="0" width="100%" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${activationUrl}" target="_blank" rel="noopener noreferrer"
+                       style="background-color: #e50914; color: #ffffff; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-size: 16px; display: inline-block;">
+                      🔓 Activate Account
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Fallback link -->
+              <p style="color: #999999; font-size: 14px; text-align: center;">
+                If the button doesn't work, copy and paste the following URL into your browser:<br>
+                <a href="${activationUrl}" style="color: #e50914; word-break: break-all;" target="_blank" rel="noopener noreferrer">
+                  ${activationUrl}
+                </a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td bgcolor="#f5f5f5" style="padding: 20px; text-align: center; color: #777777; font-size: 12px;">
+              © ${new Date().getFullYear()} MovieMatch, All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+            `;
             const client = new SMTPClient({
                 connection: {
                     hostname: "smtp.gmail.com",
