@@ -218,7 +218,7 @@ router.get('/activate/:id', async (ctx: Context) => {
     await usersCollection.updateOne({ _id: new ObjectId(userId) }, { $set: { active: true } });
 
     await closeMongoDbConnection();
-    return ctx.redirect(`${Deno.env.get("MOVIE_MATCH_APP_URL")}/login`, 302);
+    return ctx.redirect(`${Deno.env.get("MOVIE_MATCH_APP_URL")}/account-activated`, 302);
   } catch (error) {
     await closeMongoDbConnection();
     console.log("Server Error: ", error);
