@@ -86,6 +86,7 @@ router.post(
                 email: body.email,
                 password: hashedPassword,
                 active: false,
+                online: false,
                 createdAt: Date.now(),
             };
             session = mongoDbClient.startSession();
@@ -183,7 +184,7 @@ router.post(
             session.endSession();
             await closeMongoDbConnection();
             ctx.status(200);
-            return ctx.json({ message: "OK" });
+            return ctx.json({ message: "OK", data: { id: newUser._id } });
         } catch (error) {
             await session.abortTransaction();
             session.endSession();
