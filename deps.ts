@@ -6,4 +6,3 @@ export { setCookie, getCookie, deleteCookie } from "jsr:@hono/hono/cookie";
 export { compile } from "npm:pug@3.0.3";
 export { MongoClient, ObjectId } from "npm:mongodb@6.17.0";
 export { hash, verify } from "jsr:@denorg/scrypt@4.4.4";
-export { SMTPClient } from "https://deno.land/x/denomailer/mod.ts";
