@@ -1,4 +1,4 @@
-import { Context, Hono, hash, verify, deleteCookie, setCookie, ObjectId, SMTPClient } from "../../deps.ts";
+import { Context, Hono, hash, verify, deleteCookie, setCookie, ObjectId } from "../../deps.ts";
 import { authCookie } from "../../middlewares/movie_match/cookieAuth.ts";
 import { closeMongoDbConnection, mongoDbClient, openMongoDbConnection } from "../../utils/movie_match/mongoDbClient.ts";
 
@@ -60,11 +60,11 @@ router.post(
     let session;
     try {
       const body = await ctx.req.json();
-      if (!body.firstName || !body.lastName || !body.email || !body.password) {
+      if (!body.firstName || !body.lastName || !body.email || !body.password || !body.age) {
         ctx.status(400);
         return ctx.json({ message: "Missing fields" });
       }
-      if (typeof body.firstName !== "string" || typeof body.lastName !== "string" || typeof body.email !== "string" || typeof body.password !== "string") {
+      if (typeof body.firstName !== "string" || typeof body.lastName !== "string" || typeof body.email !== "string" || typeof body.password !== "string" || typeof body.age !== "number") {
         ctx.status(400);
         return ctx.json({ message: "Invalid field types" });
       }
@@ -85,6 +85,7 @@ router.post(
         lastName: body.lastName,
         email: body.email,
         password: hashedPassword,
+        age: body.age,
         active: false,
         online: false,
         createdAt: Date.now(),
